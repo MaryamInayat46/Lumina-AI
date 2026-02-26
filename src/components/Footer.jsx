@@ -2,27 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Github, Twitter, Linkedin, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useSubmit from '../hooks/useSubmit';
+import { supabase } from '../lib/supabase';
 import { CONTENT } from '../data/content';
 
 const Footer = () => {
     const { footer } = CONTENT;
-    const [waitlistCount, setWaitlistCount] = useState(0);
+    const [waitlistCount, setWaitlistCount] = useState(1240); // Base count
 
     useEffect(() => {
-        const storedCount = localStorage.getItem('lumina_waitlist_count');
-        if (storedCount) {
-            setWaitlistCount(parseInt(storedCount, 10));
-        } else {
-            const initialCount = 1240;
-            setWaitlistCount(initialCount);
-            localStorage.setItem('lumina_waitlist_count', initialCount.toString());
-        }
+        // 1. Initial fetch of count
+        const fetchInitialCount = async () => {
+            const { count, error } = await supabase
+                .from('waitlist')
+                .select('*', { count: 'exact', head: true });
+
+            if (!error && count !== null) {
+                setWaitlistCount(1240 + count); // 1240 is our "starting" social proof
+            }
+        };
+
+        fetchInitialCount();
+
+        // 2. Real-time subscription for new signups
+        const channel = supabase
+            .channel('schema-db-changes')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'waitlist' },
+                (payload) => {
+                    setWaitlistCount(prev => prev + 1);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const handleSuccess = () => {
-        const newCount = waitlistCount + 1;
-        setWaitlistCount(newCount);
-        localStorage.setItem('lumina_waitlist_count', newCount.toString());
         toast.success('Successfully joined the waitlist!', {
             style: {
                 background: '#0f172a',

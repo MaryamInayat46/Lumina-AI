@@ -1,17 +1,11 @@
 import { useState } from 'react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
-const useSubmit = (onSuccess) => {
+const useSubmit = (onSuccessCallback) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-
-    const validateEmail = (email) => {
-        return String(email)
-            .toLowerCase()
-            .match(
-                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            );
-    };
 
     const submit = async (e) => {
         e.preventDefault();
@@ -19,30 +13,57 @@ const useSubmit = (onSuccess) => {
         setError(null);
 
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        const email = formData.get('email');
+        const botField = formData.get('bot_field');
 
-        // Basic validation
-        if (!data.email || !validateEmail(data.email)) {
+        // 1. Honeypot check
+        if (botField) {
+            console.warn('Bot detected via honeypot');
+            setSuccess(true);
+            setLoading(false);
+            return;
+        }
+
+        // 2. Email Validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
             setError('Please enter a valid email address.');
             setLoading(false);
             return;
         }
 
-        // Honeypot check
-        if (data.bot_field) {
-            console.warn('Bot detected via honeypot.');
+        // 3. Client-side Rate Limiting (Simple)
+        const lastSub = localStorage.getItem('lumina_last_submission');
+        const now = Date.now();
+        if (lastSub && now - parseInt(lastSub, 10) < 60000) { // 1 minute limit
+            setError('Too many requests. Please wait a moment before trying again.');
+            toast.error('Slow down! One request per minute permitted.');
             setLoading(false);
-            setSuccess(true); // Faking success to bots
             return;
         }
 
-        // Simulate API call
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            setSuccess(true);
-            if (onSuccess) onSuccess(data);
+            // 4. Invoke Supabase Edge Function for secure processing & email
+            const { data, error: funcError } = await supabase.functions.invoke('welcome-email', {
+                body: { email, location: 'Remote/Web' }
+            });
+
+            if (funcError) {
+                // Special handling for duplicate emails if returned by function
+                if (funcError.message?.includes('duplicate')) {
+                    setError('This email is already on our waitlist!');
+                    toast.error('You are already registered!');
+                } else {
+                    throw funcError;
+                }
+            } else {
+                setSuccess(true);
+                localStorage.setItem('lumina_last_submission', now.toString());
+                if (onSuccessCallback) onSuccessCallback();
+            }
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            console.error('Submission error:', err);
+            setError('Something went wrong. Please try again later.');
         } finally {
             setLoading(false);
         }
