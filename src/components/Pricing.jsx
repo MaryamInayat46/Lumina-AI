@@ -1,32 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-
-const tiers = [
-    {
-        name: 'Basic',
-        price: '$49',
-        description: 'Perfect for small teams and startups.',
-        features: ['5,000 requests/mo', 'Standard support', 'Community access', 'Basic analytics'],
-        highlight: false
-    },
-    {
-        name: 'Pro',
-        price: '$199',
-        description: 'Advanced features for growing companies.',
-        features: ['50,000 requests/mo', 'Priority support', 'Advanced AI tools', 'Custom dashboards', 'API Access'],
-        highlight: true
-    },
-    {
-        name: 'Enterprise',
-        price: 'Custom',
-        description: 'Maximum scale and security for large organizations.',
-        features: ['Unlimited requests', '24/7 dedicated support', 'On-premise deployment', 'Custom SLAs', 'White-labeling'],
-        highlight: false
-    }
-];
+import { CONTENT } from '../data/content';
 
 const Pricing = () => {
+    const { pricing } = CONTENT;
+
     return (
         <section id="pricing" className="py-24 relative bg-slate-900/50">
             <div className="max-w-7xl mx-auto px-6">
@@ -37,15 +16,15 @@ const Pricing = () => {
                         viewport={{ once: true }}
                         className="text-4xl md:text-5xl font-bold mb-6"
                     >
-                        Predictable <span className="text-neon-blue">Pricing.</span>
+                        {pricing.title} <span className="text-neon-blue">{pricing.titleAccent}</span>
                     </motion.h2>
                     <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                        Choose the plan that fits your needs. No hidden fees, cancel anytime.
+                        {pricing.description}
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                    {tiers.map((tier, index) => (
+                    {pricing.tiers.map((tier, index) => (
                         <motion.div
                             key={tier.name}
                             initial={{ opacity: 0, y: 30 }}
@@ -67,7 +46,7 @@ const Pricing = () => {
                                 <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-4xl font-bold text-white">{tier.price}</span>
-                                    {tier.price !== 'Custom' && <span className="text-slate-400">/mo</span>}
+                                    {tier.price !== 'Custom' && <span className="text-slate-400 text-sm">/mo</span>}
                                 </div>
                                 <p className="text-slate-400 mt-4 text-sm leading-relaxed">
                                     {tier.description}

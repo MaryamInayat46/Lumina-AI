@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, Play } from 'lucide-react';
+import { CONTENT } from '../data/content';
 
 const Hero = () => {
+    const { hero } = CONTENT;
+
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
             {/* Background Glow */}
@@ -15,30 +18,30 @@ const Hero = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-white/5 mb-8 hover:border-neon-blue/30 transition-colors cursor-pointer group">
-                        <span className="text-xs font-semibold tracking-wider uppercase text-neon-blue">New Generation</span>
+                        <span className="text-xs font-semibold tracking-wider uppercase text-neon-blue">{hero.badge}</span>
                         <div className="w-1 h-1 rounded-full bg-slate-600" />
-                        <span className="text-xs text-slate-400">Lumina AI v2.0 is here</span>
+                        <span className="text-xs text-slate-400">{hero.badgeText}</span>
                         <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-0.5 transition-transform" />
                     </div>
 
                     <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[1.1]">
-                        Intelligence for the <br />
+                        {hero.titleLine1} <br />
                         <span className="bg-gradient-to-r from-neon-blue to-teal-400 bg-clip-text text-transparent">
-                            Next Frontier.
+                            {hero.titleAccent}
                         </span>
                     </h1>
 
                     <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-                        Deploy hyper-personalized AI models at scale. Lumina AI provides the infrastructure to build, train, and ship intelligence in record time.
+                        {hero.description}
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                         <button className="w-full sm:w-auto px-10 py-4 rounded-full bg-neon-blue text-slate-950 font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,242,255,0.4)]">
-                            Get Started Free
+                            {hero.primaryCTA}
                         </button>
                         <button className="w-full sm:w-auto px-10 py-4 rounded-full glass border-white/10 text-white font-bold text-lg hover:bg-white/5 transition-all flex items-center justify-center gap-2">
                             <Play className="w-5 h-5 fill-current" />
-                            Watch Demo
+                            {hero.secondaryCTA}
                         </button>
                     </div>
                 </motion.div>

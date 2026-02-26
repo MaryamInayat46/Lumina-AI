@@ -1,7 +1,54 @@
-import React from 'react';
-import { Mail, Github, Twitter, Linkedin, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Github, Twitter, Linkedin, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
+import useSubmit from '../hooks/useSubmit';
+import { CONTENT } from '../data/content';
 
 const Footer = () => {
+    const { footer } = CONTENT;
+    const [waitlistCount, setWaitlistCount] = useState(0);
+
+    useEffect(() => {
+        const storedCount = localStorage.getItem('lumina_waitlist_count');
+        if (storedCount) {
+            setWaitlistCount(parseInt(storedCount, 10));
+        } else {
+            const initialCount = 1240;
+            setWaitlistCount(initialCount);
+            localStorage.setItem('lumina_waitlist_count', initialCount.toString());
+        }
+    }, []);
+
+    const handleSuccess = () => {
+        const newCount = waitlistCount + 1;
+        setWaitlistCount(newCount);
+        localStorage.setItem('lumina_waitlist_count', newCount.toString());
+        toast.success('Successfully joined the waitlist!', {
+            style: {
+                background: '#0f172a',
+                color: '#fff',
+                border: '1px solid rgba(0, 242, 255, 0.2)',
+            },
+            iconTheme: {
+                primary: '#00f2ff',
+                secondary: '#0f172a',
+            },
+        });
+    };
+
+    const { submit, loading, error, success, reset } = useSubmit(handleSuccess);
+
+    const onFormSubmit = (e) => {
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+        if (!email) {
+            toast.error('Please enter an email address.');
+            e.preventDefault();
+            return;
+        }
+        submit(e);
+    };
+
     return (
         <footer className="pt-24 pb-12 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -13,12 +60,18 @@ const Footer = () => {
                             <Zap className="w-6 h-6 text-neon-blue" />
                             <span className="text-xl font-bold tracking-tight text-white">Lumina AI</span>
                         </div>
-                        <p className="text-slate-400 max-w-sm mb-8 leading-relaxed">
-                            Empowering the next generation of intelligent applications with high-performance infrastructure and intuitive tools.
+                        <p className="text-slate-400 max-w-sm mb-4 leading-relaxed">
+                            {footer.tagline}
                         </p>
+                        <div className="mb-8">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-blue/10 border border-neon-blue/20">
+                                <span className="w-2 h-2 rounded-full bg-neon-blue animate-pulse" />
+                                <span className="text-xs font-bold text-neon-blue">{waitlistCount.toLocaleString()} Users Joined</span>
+                            </div>
+                        </div>
                         <div className="flex gap-4">
                             {[Twitter, Github, Linkedin].map((Icon, i) => (
-                                <a key={i} href="#" className="p-2 glass border-white/5 text-slate-400 hover:text-neon-blue hover:border-neon-blue/20 transition-all rounded-lg">
+                                <a key={i} href="#" className="p-2 glass border-white/5 text-slate-400 hover:text-neon-blue hover:border-neon-blue/20 transition-all rounded-lg" aria-label="Social Link">
                                     <Icon className="w-5 h-5" />
                                 </a>
                             ))}
@@ -37,28 +90,56 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Newsletter</h4>
-                        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                            Get the latest updates on AI infrastructure sent directly to your inbox.
-                        </p>
-                        <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                <input
-                                    type="email"
-                                    placeholder="Email address"
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl glass border-white/5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-neon-blue/30 transition-all"
-                                />
+                        <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{footer.newsletter.title}</h4>
+
+                        {success ? (
+                            <div className="p-6 rounded-2xl glass border-neon-blue/20 text-center">
+                                <CheckCircle2 className="w-10 h-10 text-neon-blue mx-auto mb-4" />
+                                <h5 className="text-white font-bold mb-2">You're on the list!</h5>
+                                <p className="text-slate-400 text-sm mb-4">Check your email for the next steps.</p>
+                                <button
+                                    onClick={reset}
+                                    className="text-xs text-neon-blue hover:underline flex items-center justify-center gap-1 mx-auto"
+                                >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Try another email
+                                </button>
                             </div>
-                            <button className="w-full py-3 rounded-xl bg-neon-blue text-slate-950 font-bold text-sm hover:shadow-[0_0_15px_rgba(0,242,255,0.3)] transition-all">
-                                Subscribe
-                            </button>
-                        </form>
+                        ) : (
+                            <>
+                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                                    {footer.newsletter.description}
+                                </p>
+                                <form className="space-y-3" onSubmit={onFormSubmit}>
+                                    {/* Honeypot Field */}
+                                    <div className="hidden" aria-hidden="true">
+                                        <input type="text" name="bot_field" tabIndex="-1" autoComplete="off" />
+                                    </div>
+
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                        <input
+                                            name="email"
+                                            type="email"
+                                            placeholder="Email address"
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl glass border-white/5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-neon-blue/30 transition-all"
+                                        />
+                                    </div>
+                                    {error && <p className="text-rose-500 text-xs mt-1">{error}</p>}
+                                    <button
+                                        disabled={loading}
+                                        className="w-full py-3 rounded-xl bg-neon-blue text-slate-950 font-bold text-sm hover:shadow-[0_0_15px_rgba(0,242,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loading ? 'Subscribing...' : 'Subscribe'}
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
 
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-xs">
-                    <p>© 2026 Lumina AI Inc. All rights reserved.</p>
+                    <p>{footer.copyright}</p>
                     <div className="flex gap-8">
                         <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                         <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
