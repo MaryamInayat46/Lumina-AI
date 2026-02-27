@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import LiveActivity from './components/LiveActivity';
 import SocialProof from './components/SocialProof';
 import BackToTop from './components/BackToTop';
+import DemoBadge from './components/DemoBadge';
 import Admin from './pages/Admin';
 
 const LandingPage = () => (
@@ -22,6 +23,7 @@ const LandingPage = () => (
     <LiveActivity />
     <SocialProof />
     <BackToTop />
+    <DemoBadge />
   </>
 );
 

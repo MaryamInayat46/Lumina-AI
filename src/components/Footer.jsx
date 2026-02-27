@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Github, Twitter, Linkedin, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useSubmit from '../hooks/useSubmit';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseClient';
 import { CONTENT } from '../data/content';
 
 const Footer = () => {
